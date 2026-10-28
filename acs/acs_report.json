@@ -1,0 +1,83 @@
+{
+  "aic": "1.2.156.3088.1.BUPT.29ZHHL.N0DUXP.IYHWFE.0N9N",
+  "active": true,
+  "lastModifiedTime": "2026-10-26T18:18:51+08:00",
+  "protocolVersion": "02.02",
+  "version": "1.0.0",
+  "iconUrl": "",
+  "documentationUrl": "",
+  "webAppUrl": "",
+  "provider": {
+    "countryCode": "CN",
+    "organization": "芯封智检团队",
+    "department": "",
+    "url": "",
+    "license": "",
+    "name": "",
+    "email": "",
+    "domainRegistrations": []
+  },
+  "securitySchemes": {
+    "mtls": {
+      "type": "mutualTLS",
+      "description": "智能体间 mTLS 双向认证"
+    }
+  },
+  "capabilities": {
+    "streaming": false,
+    "notification": false,
+    "messageQueue": []
+  },
+  "name": "芯片质检报告智能体",
+  "description": "汇总一批检测结果，按可配置阈值（置信度阈值、单图缺陷上限、批次缺陷上限）判定合格(OK)、不合格(NG)或待复核(REVIEW)，输出结构化质检结论与 Markdown 报告。不执行检测，不控制产线。",
+  "endPoints": [
+    {
+      "url": "https://YOUR_PUBLIC_HOST:8445/rpc",
+      "transport": "JSONRPC",
+      "security": [
+        {
+          "mtls": []
+        }
+      ]
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json",
+    "text/markdown"
+  ],
+  "skills": [
+    {
+      "id": "chip-quality.report",
+      "name": "质检报告生成",
+      "description": "汇总检测结果，按规则判定并生成结构化结论与 Markdown 报告。",
+      "version": "1.0.0",
+      "tags": [
+        "质检报告",
+        "缺陷统计",
+        "判定规则",
+        "Markdown"
+      ],
+      "examples": [
+        "根据这批检测结果生成质检报告",
+        "这批芯片是否合格"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json",
+        "text/markdown"
+      ]
+    }
+  ],
+  "certificate": {
+    "altNames": {
+      "ip": [
+        "YOUR_PUBLIC_HOST"
+      ]
+    }
+  }
+}

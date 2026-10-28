@@ -1,0 +1,38 @@
+# 模型与数据
+*.pt
+*.pth
+*.onnx
+*.engine
+datasets/
+samples/
+runs/
+
+# 证书与密钥
+*.pem
+*.key
+*.crt
+*.pfx
+certs/
+keyfiles/
+
+# 配置与令牌
+frp/
+.acps-cli/
+*.token
+token.txt
+*_token.txt
+*token*.json
+
+# 运行产物
+logs/
+*.log
+*.jsonl
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# 本地路径与临时文件
+_*.py
+.DS_Store
+Thumbs.db

@@ -1,0 +1,16 @@
+# 注意：acps-sdk 未发布到 PyPI，需从 AIP 开源社区仓库安装（见 README 第三节）
+# AtomGit: https://atomgit.com/AIP-PUB/ACPs-community
+# GitHub : https://github.com/AIP-PUB/ACPs-community
+# 安装示例: pip install "git+https://github.com/AIP-PUB/ACPs-community.git#subdirectory=acps-sdk"
+
+fastapi>=0.110
+uvicorn[standard]>=0.27
+httpx>=0.27
+pillow>=10.0
+pyyaml>=6.0
+kafka-python>=2.0
+
+# 可选：自签证书测试时需要
+# cryptography>=42.0
+# 可选：启用缺陷检测时需要
+# ultralytics>=8.0

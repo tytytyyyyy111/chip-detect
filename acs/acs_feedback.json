@@ -1,0 +1,82 @@
+{
+  "aic": "1.2.156.3088.1.BUPT.29ZHHL.LU5GGY.8LFBAM.0SMV",
+  "active": true,
+  "lastModifiedTime": "2026-10-26T18:18:51+08:00",
+  "protocolVersion": "02.02",
+  "version": "1.0.0",
+  "iconUrl": "",
+  "documentationUrl": "",
+  "webAppUrl": "",
+  "provider": {
+    "countryCode": "CN",
+    "organization": "芯封智检团队",
+    "department": "",
+    "url": "",
+    "license": "",
+    "name": "",
+    "email": "",
+    "domainRegistrations": []
+  },
+  "securitySchemes": {
+    "mtls": {
+      "type": "mutualTLS",
+      "description": "智能体间 mTLS 双向认证"
+    }
+  },
+  "capabilities": {
+    "streaming": false,
+    "notification": false,
+    "messageQueue": []
+  },
+  "name": "芯片质检数据回流智能体",
+  "description": "接收人工复核后的样本与修正标注，保存图像并以 YOLO 格式写入标签，维护回流清单与类别统计；样本数达到阈值时生成重训请求。支持 submit/stats/trigger/clear_trigger 动作。",
+  "endPoints": [
+    {
+      "url": "https://YOUR_PUBLIC_HOST:8446/rpc",
+      "transport": "JSONRPC",
+      "security": [
+        {
+          "mtls": []
+        }
+      ]
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chip-quality.feedback",
+      "name": "质检数据回流",
+      "description": "保存人工复核样本与 YOLO 标签，维护统计并在达到阈值时触发重训。",
+      "version": "1.0.0",
+      "tags": [
+        "数据回流",
+        "样本管理",
+        "重训触发",
+        "YOLO标注"
+      ],
+      "examples": [
+        "提交这张图的修正标注",
+        "查看当前回流样本统计",
+        "触发一次重训"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ],
+  "certificate": {
+    "altNames": {
+      "ip": [
+        "YOUR_PUBLIC_HOST"
+      ]
+    }
+  }
+}

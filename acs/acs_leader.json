@@ -1,0 +1,92 @@
+{
+  "aic": "1.2.156.3088.1.BUPT.29ZHHL.GJZM4A.2HHVSC.0AH4",
+  "active": true,
+  "lastModifiedTime": "2026-10-25T21:06:53+08:00",
+  "protocolVersion": "02.02",
+  "version": "1.0.1",
+  "iconUrl": "",
+  "documentationUrl": "",
+  "webAppUrl": "http://YOUR_PUBLIC_HOST:8080/",
+  "provider": {
+    "countryCode": "CN",
+    "organization": "芯封智检团队",
+    "department": "",
+    "url": "",
+    "license": "",
+    "name": "",
+    "email": "",
+    "domainRegistrations": []
+  },
+  "securitySchemes": {
+    "mtls": {
+      "type": "mutualTLS",
+      "description": "智能体间 mTLS 双向认证"
+    }
+  },
+  "capabilities": {
+    "streaming": false,
+    "notification": false,
+    "messageQueue": []
+  },
+  "name": "芯封智检主控智能体",
+  "description": "面向最终用户的质检入口：接收上传图像，依次编排图像预处理、缺陷检测、质检报告三个 Partner，汇总检测框与结论并返回带编号标注的结果。不直接执行模型推理。",
+  "endPoints": [
+    {
+      "url": "https://YOUR_PUBLIC_HOST:8447/rpc",
+      "transport": "JSONRPC",
+      "security": [
+        {
+          "mtls": []
+        }
+      ]
+    }
+  ],
+  "defaultInputModes": [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/bmp",
+    "image/tiff"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chip-quality.orchestration",
+      "name": "质检流程编排",
+      "description": "作为 Leader 调用预处理、检测、报告 Partner，完成端到端质检编排。",
+      "version": "1.0.0",
+      "tags": [
+        "Leader",
+        "多智能体编排",
+        "质检流程",
+        "AIP",
+        "芯封智检",
+        "芯片质检",
+        "封装缺陷检测",
+        "多智能体协同质检"
+      ],
+      "examples": [
+        "上传一张芯片图并完成全流程质检"
+      ],
+      "inputModes": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/bmp",
+        "image/tiff"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ],
+  "certificate": {
+    "altNames": {
+      "ip": [
+        "YOUR_PUBLIC_HOST"
+      ]
+    }
+  }
+}

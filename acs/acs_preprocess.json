@@ -1,0 +1,96 @@
+{
+  "aic": "1.2.156.3088.1.BUPT.29ZHHL.QMEFXN.PU0PW3.0YUA",
+  "active": true,
+  "lastModifiedTime": "2026-10-26T18:18:51+08:00",
+  "protocolVersion": "02.02",
+  "version": "1.0.0",
+  "iconUrl": "",
+  "documentationUrl": "",
+  "webAppUrl": "",
+  "provider": {
+    "countryCode": "CN",
+    "organization": "芯封智检团队",
+    "department": "",
+    "url": "",
+    "license": "",
+    "name": "",
+    "email": "",
+    "domainRegistrations": []
+  },
+  "securitySchemes": {
+    "mtls": {
+      "type": "mutualTLS",
+      "description": "智能体间 mTLS 双向认证"
+    }
+  },
+  "capabilities": {
+    "streaming": false,
+    "notification": false,
+    "messageQueue": []
+  },
+  "name": "芯片图像预处理智能体",
+  "description": "接收常见格式的芯片封装图像，完成解码、EXIF 方向纠正、自动去除纯色边框并裁剪到内容区、按 letterbox/stretch/crop 适配目标尺寸，输出标准化 RGB 图像与处理元数据。拒绝非图像文件或超过安全分辨率限制的输入。",
+  "endPoints": [
+    {
+      "url": "https://YOUR_PUBLIC_HOST:8443/rpc",
+      "transport": "JSONRPC",
+      "security": [
+        {
+          "mtls": []
+        }
+      ]
+    }
+  ],
+  "defaultInputModes": [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/bmp",
+    "image/tiff",
+    "image/gif",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "image/png",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chip-image.preprocess",
+      "name": "芯片图像预处理",
+      "description": "多格式解码、自动去边框裁剪、尺寸适配，输出标准化图像及元数据。",
+      "version": "1.0.0",
+      "tags": [
+        "图像预处理",
+        "自动裁剪",
+        "尺寸适配",
+        "多格式",
+        "芯片检测"
+      ],
+      "examples": [
+        "把这张 BMP 去边框并缩放到 640x640",
+        "这张 TIFF 方向不对，先纠正再适配"
+      ],
+      "inputModes": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/bmp",
+        "image/tiff",
+        "image/gif",
+        "application/json"
+      ],
+      "outputModes": [
+        "image/png",
+        "application/json"
+      ]
+    }
+  ],
+  "certificate": {
+    "altNames": {
+      "ip": [
+        "YOUR_PUBLIC_HOST"
+      ]
+    }
+  }
+}

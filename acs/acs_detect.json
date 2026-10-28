@@ -1,0 +1,93 @@
+{
+  "aic": "1.2.156.3088.1.BUPT.29ZHHL.5S9JW0.5E1WJU.0E4Y",
+  "active": true,
+  "lastModifiedTime": "2026-10-26T18:18:51+08:00",
+  "protocolVersion": "02.02",
+  "version": "1.0.1",
+  "iconUrl": "",
+  "documentationUrl": "",
+  "webAppUrl": "",
+  "provider": {
+    "countryCode": "CN",
+    "organization": "芯封智检团队",
+    "department": "",
+    "url": "",
+    "license": "",
+    "name": "",
+    "email": "",
+    "domainRegistrations": []
+  },
+  "securitySchemes": {
+    "mtls": {
+      "type": "mutualTLS",
+      "description": "智能体间 mTLS 双向认证"
+    }
+  },
+  "endPoints": [
+    {
+      "url": "https://YOUR_PUBLIC_HOST:8444/rpc",
+      "transport": "JSONRPC",
+      "security": [
+        {
+          "mtls": []
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "notification": false,
+    "messageQueue": []
+  },
+  "name": "芯片封装缺陷检测智能体",
+  "description": "对芯片封装表面图像执行 YOLO11n 缺陷检测，识别脏污(ZangWu)、破损(PoSun)、崩裂(BengLie)、镀膜脱落(DuMoTuoLuo)四类缺陷，返回类别、置信度和原图坐标。仅支持封装表面图像，不接受其他场景图片。",
+  "defaultInputModes": [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/bmp",
+    "image/tiff",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chip-inspection.defect-detection",
+      "name": "芯片封装缺陷检测",
+      "description": "YOLO11n 四类缺陷检测，输出类别、置信度与原图坐标。",
+      "version": "1.0.1",
+      "tags": [
+        "芯片检测",
+        "缺陷检测",
+        "计算机视觉",
+        "YOLO",
+        "质检",
+        "半导体"
+      ],
+      "examples": [
+        "检测这张芯片封装图有哪些缺陷",
+        "分析该芯片表面的脏污和破损"
+      ],
+      "inputModes": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/bmp",
+        "image/tiff",
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ],
+  "certificate": {
+    "altNames": {
+      "ip": [
+        "YOUR_PUBLIC_HOST"
+      ]
+    }
+  }
+}
