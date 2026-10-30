@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>芯封智检</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6f8;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fb;
+      --ink: #14212b;
+      --muted: #657581;
+      --line: #dce4e9;
+      --accent: #087e8b;
+      --accent-dark: #08616b;
+      --accent-soft: #e4f3f3;
+      --warn: #9a5b12;
+      --warn-bg: #fff4df;
+      --danger: #9b3030;
+      --shadow: 0 18px 48px rgba(19, 44, 57, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.9);
+    }
+    .topbar { min-height: 72px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.02em; }
+    .brand-mark {
+      width:36px;height:36px;display:grid;place-items:center;border-radius:11px;
+      background:var(--accent);color:white;font-size:16px;
+    }
+    .brand small { display:block;color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.08em;margin-top:3px; }
+    .api-state { display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px; }
+    .dot { width:8px;height:8px;border-radius:50%;background:#c3ccd2; }
+    .dot.ok { background:#2f9c6b; box-shadow:0 0 0 4px #e6f4ed; }
+    .dot.bad { background:#bd4c4c; box-shadow:0 0 0 4px #f8e8e8; }
+    main { padding: 34px 0 52px; }
+    .intro { display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:24px; }
+    h1 { font-size: clamp(25px, 3vw, 34px);letter-spacing:-.035em;margin:0 0 8px; }
+    .intro p { max-width:690px;margin:0;color:var(--muted);line-height:1.65; }
+    .version { color:var(--muted);font-size:12px;white-space:nowrap; }
+    .workspace { display:grid;grid-template-columns:minmax(0,1.65fr) minmax(290px,.8fr);gap:20px;align-items:start; }
+    .panel { background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden; }
+    .panel-head { padding:19px 21px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:16px; }
+    .panel-head h2 { margin:0;font-size:16px; }
+    .panel-head span { font-size:12px;color:var(--muted); }
+    .image-area { padding:20px; }
+    .dropzone {
+      min-height:340px;display:flex;align-items:center;justify-content:center;
+      border:1px dashed #b9c8cf;border-radius:12px;background:var(--surface-soft);
+      position:relative;overflow:hidden;
+    }
+    .dropzone.drag { border-color:var(--accent);background:var(--accent-soft); }
+    .empty { text-align:center;padding:32px 20px;max-width:390px; }
+    .empty .symbol { width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin:0 auto 14px;background:var(--accent-soft);color:var(--accent);font-size:22px; }
+    .empty strong { display:block;margin-bottom:7px; }
+    .empty p { margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.6; }
+    .button { border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink);padding:9px 13px;font-weight:600; }
+    .button:hover { border-color:#aabcc5; }
+    .button.primary { background:var(--accent);border-color:var(--accent);color:white; }
+    .button.primary:hover { background:var(--accent-dark); }
+    .button:disabled { opacity:.5;cursor:not-allowed; }
+    .preview-wrap { display:none;position:relative;max-width:100%;margin:auto;line-height:0;user-select:none;touch-action:none; }
+    .preview-wrap.show { display:block; }
+    #preview { display:block;max-width:100%;height:auto;border-radius:7px; }
+    #overlay { position:absolute;inset:0;width:100%;height:100%;touch-action:none; }
+    .image-actions { display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px; }
+    .image-actions .left,.image-actions .right { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+    .hint { color:var(--muted);font-size:12px;line-height:1.5; }
+    .controls { padding:20px 21px 21px;display:grid;gap:17px; }
+    .field { display:grid;gap:8px; }
+    .field label { font-size:13px;font-weight:650;display:flex;justify-content:space-between;gap:10px; }
+    .field label output { color:var(--accent);font-variant-numeric:tabular-nums; }
+    input[type="range"] { width:100%;accent-color:var(--accent); }
+    select { width:100%;padding:9px 10px;background:white;border:1px solid var(--line);border-radius:8px;color:var(--ink); }
+    .crop-state { border-radius:9px;padding:10px 11px;background:var(--surface-soft);color:var(--muted);font-size:12px;line-height:1.5; }
+    .detect-button { width:100%;min-height:43px; }
+    .notice { display:none;padding:11px 12px;border-radius:9px;font-size:12px;line-height:1.5; }
+    .notice.show { display:block; }
+    .notice.warn { color:var(--warn);background:var(--warn-bg); }
+    .notice.error { color:var(--danger);background:#fae9e9; }
+    .notice.info { color:#315d69;background:#eaf3f6; }
+    .results { margin-top:20px; }
+    .result-summary { padding:17px 21px;display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line); }
+    .result-summary strong { font-size:15px; }
+    .result-summary small { display:block;color:var(--muted);margin-top:4px; }
+    .report-bar { margin:0 21px 12px;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.6; }
+    .report-bar.ok { background:rgba(80,200,80,.12);border:1px solid rgba(80,200,80,.40); }
+    .report-bar.ng { background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.40); }
+    .report-bar.review { background:rgba(255,200,60,.12);border:1px solid rgba(255,200,60,.40); }
+    .result-body { display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;padding:16px 21px 18px;align-items:start; }
+    .result-body.no-image { grid-template-columns:1fr; }
+    .annotated-wrap { padding:0; }
+    .annotated-title { font-size:12px;color:var(--muted);margin-bottom:8px; }
+    #annotatedPreview { width:100%;display:block;border-radius:10px;border:1px solid var(--line); }
+    .annotated-stage { position:relative; }
+    #annotatedOverlay { position:absolute;inset:0;width:100%;height:100%;pointer-events:none; }
+    .result-side { display:flex;flex-direction:column;min-height:0; }
+    .result-side-title { font-size:12px;color:var(--muted);margin-bottom:8px; }
+    .result-list { padding:0;margin:0;overflow-y:auto;max-height:62vh;scrollbar-width:thin; }
+    .result-side .result-row { grid-template-columns:1fr auto;gap:8px; }
+    .result-side .result-coords { grid-column:1/-1; }
+    @media (max-width: 900px) {
+      .result-body { grid-template-columns:1fr; }
+      .result-list { max-height:none; }
+    }
+    .result-row { display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #edf1f3;font-size:13px; }
+    .result-row:last-child { border-bottom:0; }
+    .result-row { cursor:pointer; border-radius:8px; transition:background .12s ease; }
+    .result-row:hover, .result-row:focus { background:rgba(255,209,102,.10); outline:none; }
+    .result-class { font-weight:650; }
+    .result-confidence { color:var(--muted);font-variant-numeric:tabular-nums; }
+    .result-coords { color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums; }
+    .empty-results { padding:18px 0;color:var(--muted);font-size:13px;line-height:1.6; }
+    .footnote { margin-top:18px;color:var(--muted);font-size:11px;line-height:1.6; }
+    .benchmark-panel { margin-top:20px; }
+    .benchmark-body { padding:20px 21px 22px; }
+    .benchmark-intro { display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:16px; }
+    .benchmark-intro p { margin:0;color:var(--muted);font-size:12px;line-height:1.6;max-width:760px; }
+    .benchmark-models { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0; }
+    .benchmark-model { padding:13px 14px;background:var(--surface-soft);border:1px solid var(--line);border-radius:10px; }
+    .benchmark-model small { display:block;color:var(--muted);font-size:11px;margin-bottom:5px; }
+    .benchmark-model strong { font-size:13px; }
+    .benchmark-meta { color:var(--muted);font-size:12px;line-height:1.6;margin:14px 0; }
+    .benchmark-table-wrap { overflow-x:auto; }
+    .benchmark-table { width:100%;border-collapse:collapse;font-size:13px;min-width:620px; }
+    .benchmark-table th,.benchmark-table td { padding:11px 10px;border-bottom:1px solid #edf1f3;text-align:right;font-variant-numeric:tabular-nums; }
+    .benchmark-table th { color:var(--muted);font-size:11px;font-weight:600; }
+    .benchmark-table th:first-child,.benchmark-table td:first-child { text-align:left; }
+    .benchmark-table td:first-child { font-weight:600; }
+    .benchmark-delta.good { color:#187348;font-weight:650; }
+    .benchmark-delta.bad { color:#a13d3d;font-weight:650; }
+    .benchmark-delta.neutral { color:var(--muted); }
+    .benchmark-verdict { padding:12px 14px;border-radius:9px;background:var(--accent-soft);color:var(--accent-dark);font-size:13px;line-height:1.5;margin:14px 0 0; }
+    .benchmark-note { color:var(--muted);font-size:11px;line-height:1.6;margin:13px 0 0; }
+    @media (max-width:850px) {
+      .workspace { grid-template-columns:1fr; }
+      .dropzone { min-height:280px; }
+    }
+    @media (max-width:520px) {
+      .shell { width:min(100% - 24px,1240px); }
+      main { padding-top:24px; }
+      .topbar { min-height:62px; }
+      .intro { display:block; }
+      .version { display:block;margin-top:12px; }
+      .image-area { padding:12px; }
+      .dropzone { min-height:250px; }
+      .image-actions { align-items:flex-start;flex-direction:column; }
+      .result-row { grid-template-columns:1fr auto; }
+      .result-coords { grid-column:1/-1; }
+      .benchmark-intro { display:block; }
+      .benchmark-intro .button { margin-top:12px; }
+      .benchmark-models { grid-template-columns:1fr; }
+    }
+  
+.agent-trace { margin:0 21px 12px; padding:12px 16px; border:1px solid var(--line); border-radius:10px; }
+.agent-trace-title { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:12px; color:var(--muted); margin-bottom:8px; }
+.agent-chain { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+.agent-node { flex:1 1 150px; min-width:140px; border:1px solid var(--line); border-radius:9px; padding:8px 10px; font-size:12px; line-height:1.45; }
+.agent-node.ok { border-color:rgba(80,200,80,.45); background:rgba(80,200,80,.08); }
+.agent-node.error { border-color:rgba(255,80,80,.45); background:rgba(255,80,80,.08); }
+.agent-node b { display:block; font-size:13px; margin-bottom:2px; }
+.agent-node .aic { color:var(--muted); font-size:11px; word-break:break-all; }
+.agent-arrow { align-self:center; color:var(--muted); font-size:14px; }
+.agent-status { display:flex; flex-direction:column; gap:4px; margin-bottom:8px; font-size:12px; }
+.agent-status-row { padding:4px 8px; border-radius:6px; border:1px solid var(--line); }
+.agent-status-row.ok { border-color:rgba(80,200,80,.45); }
+.agent-status-row.error { border-color:rgba(255,80,80,.45); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="shell topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">芯</div>
+        <div>芯封智检<small>CHIP PACKAGE INSPECTION</small></div>
+      </div>
+      <div class="api-state"><span id="apiDot" class="dot"></span><span id="apiText">正在检查服务</span></div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <div>
+        <h1>芯片封装表面缺陷检测</h1>
+        <p>上传封装图像，可直接检测，也可先框选局部区域；系统返回缺陷位置、类别与置信度，供质检人员复核。</p>
+      </div>
+      <div class="version">检测 API · v1 · 编号框</div>
+    </section>
+
+    <div class="workspace">
+      <section class="panel">
+        <div class="panel-head"><h2>图像工作区</h2><span id="imageMeta">支持 JPG / PNG / WEBP / TIFF</span></div>
+        <div class="image-area">
+          <div id="dropzone" class="dropzone">
+            <div id="emptyState" class="empty">
+              <div class="symbol" aria-hidden="true">＋</div>
+              <strong>拖入芯片图像，或从设备选择</strong>
+              <p>支持单张检测。为保护数据，图片仅在本机服务处理，不会自动上传到第三方。</p>
+              <button id="chooseButton" class="button" type="button">选择图片</button>
+            </div>
+            <div id="previewWrap" class="preview-wrap">
+              <img id="preview" alt="待检测芯片封装图像">
+              <canvas id="overlay" aria-label="检测框和裁剪区域"></canvas>
+            </div>
+          </div>
+          <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,image/bmp,image/tiff" hidden>
+          <div class="image-actions">
+            <div class="left">
+              <button id="replaceButton" class="button" type="button" hidden>更换图片</button>
+              <button id="clearCropButton" class="button" type="button" hidden>清除裁剪框</button>
+            </div>
+            <div class="right"><span class="hint">按住鼠标或触屏拖动，在图上框选检测区域</span></div>
+          </div>
+        </div>
+        <div id="resultPanel" class="results" hidden>
+          <div class="result-summary">
+            <div><strong id="resultTitle">检测结果</strong><small id="resultSub"></small></div>
+            <button id="downloadButton" class="button" type="button">下载结果 JSON</button>
+          </div>
+          <div id="agentTrace" class="agent-trace" hidden>
+            <div class="agent-trace-title">
+              <span>智能体协作链路（AIP / mTLS）</span>
+              <button id="feedbackButton" class="button" type="button">提交回流</button>
+            </div>
+            <div id="agentChain" class="agent-chain"></div>
+            <div id="feedbackStatus" class="hint"></div>
+          </div>
+          <div id="reportBar" class="report-bar" hidden></div>
+          <div class="result-body" id="resultBody">
+            <div id="annotatedWrap" class="annotated-wrap" hidden>
+              <div class="annotated-title">编号标注图（编号与右侧清单一一对应）</div>
+              <div class="annotated-stage">
+                <img id="annotatedPreview" alt="编号标注图">
+                <canvas id="annotatedOverlay" aria-label="高亮标注图上的对应检测框"></canvas>
+              </div>
+            </div>
+            <div class="result-side">
+              <div class="result-side-title">缺陷清单（可滚动 · 悬停高亮）</div>
+              <div id="resultList" class="result-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-head"><h2>检测设置</h2><span>v2 · 可切换模型</span></div>
+        <div class="controls">
+          <div class="field">
+            <label for="confidence">置信度阈值 <output id="confidenceValue">0.25</output></label>
+            <input id="confidence" type="range" min="0.05" max="0.95" step="0.05" value="0.25">
+            <span class="hint">阈值越低，显示候选框越多；低置信结果建议人工复核。</span>
+          </div>
+          <div class="field">
+            <label for="imageSize">推理图像尺寸</label>
+            <select id="imageSize">
+              <option value="640">640 · 较快</option>
+              <option value="960" selected>960 · 平衡</option>
+              <option value="1280">1280 · 关注小缺陷</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="modelSelect">检测模型</label>
+            <select id="modelSelect"></select>
+            <button id="applyModelButton" class="button" type="button">切换模型</button>
+            <span class="hint" id="modelStatus">当前模型：加载中…</span>
+          </div>
+          <div class="field">
+            <label>智能体状态</label>
+            <div id="agentStatus" class="agent-status"></div>
+            <button id="refreshAgentsButton" class="button" type="button">刷新状态</button>
+          </div>
+          <div id="cropState" class="crop-state">未框选局部区域，将检测整张图片。</div>
+          <button id="detectButton" class="button primary detect-button" type="button" disabled>选择图像后开始检测</button>
+          <div id="notice" class="notice" role="status" aria-live="polite"></div>
+          <div class="footnote">模型权重由算法开发方提供。接入微调模型后，此处展示实际检测结果；没有可用模型时，系统不会生成模拟缺陷框。</div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel benchmark-panel">
+      <div class="panel-head">
+        <h2>模型性能对比</h2>
+        <span>同一测试集 · 同一设备 · 640 输入</span>
+      </div>
+      <div class="benchmark-body">
+        <div class="benchmark-intro">
+          <p>对基线权重与训练后权重，在同一份带标注的 test split 上计算 mAP、Precision、Recall，并实测单张推理延迟。图片与标签只在本机读取，不上传。</p>
+          <button id="benchmarkButton" class="button primary" type="button">运行对比评估</button>
+        </div>
+        <div id="benchmarkNotice" class="notice" role="status" aria-live="polite"></div>
+        <div id="benchmarkModels" class="benchmark-models"></div>
+        <div id="benchmarkMeta" class="benchmark-meta">正在读取本地评估配置…</div>
+        <div id="benchmarkResults"></div>
+        <p class="benchmark-note">mAP 用低置信度预测绘制整条 PR 曲线；表中的 Precision / Recall 固定在 0.25 阈值，因此若模型没有预测超过该阈值的框，P/R 会是 0。mAP 越高通常表示检测质量越好；延迟越低表示单张处理越快。当前 test split 曾用于探索性实验，正式报告应另用未参与调参的独立测试集。模型结构或训练设置不同时，这是系统级对比，不能单独证明某一个改进方法导致了性能变化。</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = { file: null, objectUrl: null, crop: null, result: null, dragging: false, start: null, highlightIndex: null };
+    const $ = (id) => document.getElementById(id);
+    const fileInput = $("fileInput");
+    const preview = $("preview");
+    const overlay = $("overlay");
+    const ctx = overlay.getContext("2d");
+    const annotatedOverlay = $("annotatedOverlay");
+    const annotatedCtx = annotatedOverlay.getContext("2d");
+    const boxColors = ["#ff5d5d", "#34a0ff", "#f0a33a", "#b074ff", "#32b987"];
+    let boxes = [];
+
+    function setNotice(text = "", kind = "info") {
+      const node = $("notice");
+      node.textContent = text;
+      node.className = text ? `notice show ${kind}` : "notice";
+    }
+
+    async function refreshHealth() {
+      try {
+        const response = await fetch("/health");
+        const health = await response.json();
+        $("apiDot").className = `dot ${health.model?.configured ? "ok" : ""}`;
+        $("apiText").textContent = health.model?.configured ? "服务在线 · 模型已配置" : "服务在线 · 等待接入微调模型";
+      } catch {
+        $("apiDot").className = "dot bad";
+        $("apiText").textContent = "后端服务不可用";
+      }
+    }
+
+    function drawAnnotatedHighlight() {
+      const img = $("annotatedPreview");
+      if (!img || !img.naturalWidth || !img.clientWidth) return;
+      const rect = img.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      annotatedOverlay.width = Math.round(rect.width * dpr);
+      annotatedOverlay.height = Math.round(rect.height * dpr);
+      annotatedCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      annotatedCtx.clearRect(0, 0, rect.width, rect.height);
+      const index = state.highlightIndex;
+      if (index === null || index === undefined || !boxes[index]) return;
+      const box = boxes[index];
+      const sx = rect.width / img.naturalWidth;
+      const sy = rect.height / img.naturalHeight;
+      const [x1, y1, x2, y2] = box.xyxy;
+      annotatedCtx.save();
+      annotatedCtx.strokeStyle = "#ffd166";
+      annotatedCtx.lineWidth = 4;
+      annotatedCtx.setLineDash([8, 5]);
+      annotatedCtx.strokeRect(x1 * sx - 4, y1 * sy - 4, (x2 - x1) * sx + 8, (y2 - y1) * sy + 8);
+      annotatedCtx.restore();
+    }
+
+    function drawOverlay() {
+      if (!preview.naturalWidth || !preview.clientWidth) return;
+      const rect = preview.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      overlay.width = Math.round(rect.width * dpr);
+      overlay.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      const sx = rect.width / preview.naturalWidth;
+      const sy = rect.height / preview.naturalHeight;
+      for (const [index, box] of boxes.entries()) {
+        const [x1, y1, x2, y2] = box.xyxy;
+        const active = state.highlightIndex === index;
+        ctx.strokeStyle = boxColors[box.class_id % boxColors.length];
+        ctx.lineWidth = active ? 4 : 2;
+        ctx.strokeRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy);
+        if (active) {
+          ctx.save();
+          ctx.strokeStyle = "#ffd166";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.strokeRect(x1 * sx - 4, y1 * sy - 4, (x2 - x1) * sx + 8, (y2 - y1) * sy + 8);
+          ctx.restore();
+        }
+        const label = `${index + 1}. ${box.class_name} ${(box.confidence * 100).toFixed(1)}%`;
+        ctx.font = "600 12px Segoe UI, Microsoft YaHei, sans-serif";
+        const width = ctx.measureText(label).width + 12;
+        const y = Math.max(0, y1 * sy - 22);
+        ctx.fillStyle = active ? "#ffd166" : ctx.strokeStyle;
+        ctx.fillRect(x1 * sx, y, width, 21);
+        ctx.fillStyle = active ? "#1b1300" : "#ffffff";
+        ctx.fillText(label, x1 * sx + 6, y + 15);
+      }
+      if (state.crop) {
+        const {x1, y1, x2, y2} = state.crop;
+        ctx.save();
+        ctx.fillStyle = "rgba(5, 24, 33, .42)";
+        ctx.fillRect(0, 0, rect.width, rect.height);
+        ctx.clearRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 4]);
+        ctx.strokeRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy);
+        ctx.restore();
+      }
+      if (state.dragging && state.start && state.current) {
+        const left = Math.min(state.start.x, state.current.x);
+        const top = Math.min(state.start.y, state.current.y);
+        const width = Math.abs(state.current.x - state.start.x);
+        const height = Math.abs(state.current.y - state.start.y);
+        ctx.save();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 4]);
+        ctx.strokeRect(left * sx, top * sy, width * sx, height * sy);
+        ctx.restore();
+      }
+    }
+
+    function updateCropLabel() {
+      const crop = state.crop;
+      $("cropState").textContent = crop
+        ? `局部检测区域：${Math.round(crop.x2 - crop.x1)} × ${Math.round(crop.y2 - crop.y1)} px（坐标会映射回原图）`
+        : "未框选局部区域，将检测整张图片。";
+      $("clearCropButton").hidden = !crop;
+    }
+
+    function loadFile(file) {
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        setNotice("请选择有效的图像文件。", "error");
+        return;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        setNotice("图片超过 20 MB 限制，请压缩或另选图片。", "error");
+        return;
+      }
+      if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+      state.file = file;
+      state.crop = null;
+      state.result = null;
+      boxes = [];
+      state.objectUrl = URL.createObjectURL(file);
+      preview.onload = () => {
+        $("emptyState").hidden = true;
+        $("previewWrap").classList.add("show");
+        $("replaceButton").hidden = false;
+        $("imageMeta").textContent = `${preview.naturalWidth} × ${preview.naturalHeight} px · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+        $("detectButton").disabled = false;
+        $("detectButton").textContent = "开始缺陷检测";
+        $("resultPanel").hidden = true;
+        updateCropLabel();
+        drawOverlay();
+        setNotice("");
+      };
+      preview.src = state.objectUrl;
+    }
+
+    function imagePoint(event) {
+      const rect = preview.getBoundingClientRect();
+      const x = Math.max(0, Math.min(preview.naturalWidth, (event.clientX - rect.left) * preview.naturalWidth / rect.width));
+      const y = Math.max(0, Math.min(preview.naturalHeight, (event.clientY - rect.top) * preview.naturalHeight / rect.height));
+      return {x, y};
+    }
+
+    function renderAgentTrace(agents) {
+      const wrap = $("agentTrace");
+      const chain = $("agentChain");
+      if (!Array.isArray(agents) || !agents.length) { wrap.hidden = true; chain.replaceChildren(); return; }
+      wrap.hidden = false;
+      chain.replaceChildren();
+      agents.forEach((agent, index) => {
+        if (index) { const arrow = document.createElement("div"); arrow.className = "agent-arrow"; arrow.textContent = "→"; chain.append(arrow); }
+        const node = document.createElement("div");
+        node.className = "agent-node " + (agent.status === "ok" ? "ok" : "error");
+        const title = document.createElement("b");
+        title.textContent = agent.agent + " · " + agent.ms + " ms";
+        const aic = document.createElement("div");
+        aic.className = "aic";
+        aic.textContent = agent.aic || agent.endpoint || "";
+        node.append(title, aic);
+        if (agent.error) { const err = document.createElement("div"); err.className = "aic"; err.textContent = String(agent.error).slice(0, 90); node.append(err); }
+        chain.append(node);
+      });
+    }
+
+    async function loadAgentStatus() {
+      const box = $("agentStatus");
+      box.textContent = "检测中…";
+      try {
+        const response = await fetch("/api/v1/agents");
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || ("HTTP " + response.status));
+        box.replaceChildren();
+        (data.agents || []).forEach((agent) => {
+          const row = document.createElement("div");
+          row.className = "agent-status-row " + (agent.status === "ok" ? "ok" : "error");
+          row.textContent = agent.name + " · " + agent.status + " · " + agent.ms + " ms";
+          box.append(row);
+        });
+      } catch (error) {
+        box.textContent = "状态获取失败：" + (error.message || "未知错误");
+      }
+    }
+
+    $("refreshAgentsButton").addEventListener("click", loadAgentStatus);
+    loadAgentStatus();
+
+    function renderResults(result) {
+      state.result = result;
+      state.crop = null;
+      state.highlightIndex = null;
+      updateCropLabel();
+      boxes = result.detections || [];
+      drawOverlay();
+      $("resultPanel").hidden = false;
+      renderAgentTrace(result.agents);
+      $("resultTitle").textContent = `检测到 ${result.detection_count} 个候选缺陷`;
+      $("resultSub").textContent = `推理 ${result.timing_ms.inference.toFixed(1)} ms · 服务端 ${result.timing_ms.server_total.toFixed(1)} ms · ${result.model.name}`;
+      const reportBar = $("reportBar");
+      if (result.report) {
+        reportBar.hidden = false;
+        reportBar.className = "report-bar " + (result.report.verdict === "OK" ? "ok" : result.report.verdict === "NG" ? "ng" : "review");
+        reportBar.textContent = `质检结论：${result.report.verdict_label}（${result.report.verdict}）· 检出 ${result.report.defect_total} 处 · ${(result.report.reasons || []).join("；")}`;
+      } else {
+        reportBar.hidden = true;
+        reportBar.textContent = "";
+      }
+      const annotated = $("annotatedPreview");
+      const annotatedWrap = $("annotatedWrap");
+      $("resultBody").classList.toggle("no-image", !result.annotated_image_base64);
+      if (result.annotated_image_base64) {
+        annotated.onload = drawAnnotatedHighlight;
+        annotated.src = `data:${result.annotated_mime || "image/jpeg"};base64,${result.annotated_image_base64}`;
+        annotatedWrap.hidden = false;
+      } else {
+        annotated.removeAttribute("src");
+        annotatedWrap.hidden = true;
+      }
+      const list = $("resultList");
+      list.replaceChildren();
+      if (!boxes.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-results";
+        empty.textContent = "当前阈值下未检出候选框。请人工复核原图；未检出不等于确认无缺陷。";
+        list.append(empty);
+      } else {
+        boxes.forEach((box, index) => {
+          const row = document.createElement("div");
+          row.className = "result-row";
+          const name = document.createElement("span");
+          name.className = "result-class";
+          name.textContent = `${index + 1}. ${box.class_name}`;
+          const confidence = document.createElement("span");
+          confidence.className = "result-confidence";
+          confidence.textContent = `${(box.confidence * 100).toFixed(1)}%`;
+          const coords = document.createElement("span");
+          coords.className = "result-coords";
+          coords.textContent = `原图坐标：${box.xyxy.map(Math.round).join(", ")}`;
+          row.tabIndex = 0;
+          const focus = () => { state.highlightIndex = index; drawOverlay(); drawAnnotatedHighlight(); };
+          const blur = () => { state.highlightIndex = null; drawOverlay(); drawAnnotatedHighlight(); };
+          row.addEventListener("mouseenter", focus);
+          row.addEventListener("mouseleave", blur);
+          row.addEventListener("focus", focus);
+          row.addEventListener("blur", blur);
+          row.addEventListener("click", focus);
+          row.append(name, confidence, coords);
+          list.append(row);
+        });
+      }
+      setNotice(
+        result.requires_human_review
+          ? "结果需要人工复核。系统输出用于辅助质检，不直接判定芯片合格或报废。"
+          : "检测完成。请结合原图和适用质量标准确认结果。",
+        result.requires_human_review ? "warn" : "info"
+      );
+    }
+
+    async function readApiResponse(response) {
+      const text = await response.text();
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch {
+        return {detail: text};
+      }
+    }
+
+    function setBenchmarkNotice(text = "", kind = "info") {
+      const node = $("benchmarkNotice");
+      node.textContent = text;
+      node.className = text ? `notice show ${kind}` : "notice";
+    }
+
+    function renderBenchmarkModels(models = []) {
+      const root = $("benchmarkModels");
+      root.replaceChildren();
+      for (const [index, model] of models.entries()) {
+        const card = document.createElement("div");
+        card.className = "benchmark-model";
+        const title = document.createElement("small");
+        title.textContent = index === 0 ? "基线模型" : "训练后候选模型";
+        const name = document.createElement("strong");
+        name.textContent = `${model.name} · ${model.weights_file}`;
+        card.append(title, name);
+        root.append(card);
+      }
+    }
+
+    function renderBenchmarkReport(report) {
+      if (!report?.models || report.models.length !== 2) return;
+      const [baseline, candidate] = report.models;
+      const baseMetrics = baseline.metrics;
+      const candidateMetrics = candidate.metrics;
+      $("benchmarkModels").replaceChildren();
+      renderBenchmarkModels(report.models);
+      $("benchmarkMeta").textContent =
+        `测试集 ${report.dataset.images} 张 / ${report.dataset.targets} 个标注目标 · ` +
+        `${report.dataset.classes.length} 类 · ${report.conditions.imgsz} 输入 · ` +
+        `${report.conditions.device_name} · batch=1 · ${report.created_at}`;
+
+      const metricRows = [
+        {
+          label: "mAP@0.5",
+          baseline: baseMetrics.map50 * 100,
+          candidate: candidateMetrics.map50 * 100,
+          unit: "%",
+          higher: true,
+          delta: (candidateMetrics.map50 - baseMetrics.map50) * 100,
+          deltaUnit: " 个百分点"
+        },
+        {
+          label: "mAP@0.5:0.95",
+          baseline: baseMetrics.map50_95 * 100,
+          candidate: candidateMetrics.map50_95 * 100,
+          unit: "%",
+          higher: true,
+          delta: (candidateMetrics.map50_95 - baseMetrics.map50_95) * 100,
+          deltaUnit: " 个百分点"
+        },
+        {
+          label: "Precision @ 0.25",
+          baseline: baseMetrics.precision_at_conf * 100,
+          candidate: candidateMetrics.precision_at_conf * 100,
+          unit: "%",
+          higher: true,
+          delta: (candidateMetrics.precision_at_conf - baseMetrics.precision_at_conf) * 100,
+          deltaUnit: " 个百分点"
+        },
+        {
+          label: "Recall @ 0.25",
+          baseline: baseMetrics.recall_at_conf * 100,
+          candidate: candidateMetrics.recall_at_conf * 100,
+          unit: "%",
+          higher: true,
+          delta: (candidateMetrics.recall_at_conf - baseMetrics.recall_at_conf) * 100,
+          deltaUnit: " 个百分点"
+        },
+        {
+          label: "单张平均延迟",
+          baseline: baseMetrics.mean_latency_ms,
+          candidate: candidateMetrics.mean_latency_ms,
+          unit: " ms",
+          higher: false,
+          delta: candidateMetrics.mean_latency_ms - baseMetrics.mean_latency_ms,
+          deltaUnit: " ms"
+        },
+        {
+          label: "单张 P95 延迟",
+          baseline: baseMetrics.p95_latency_ms,
+          candidate: candidateMetrics.p95_latency_ms,
+          unit: " ms",
+          higher: false,
+          delta: candidateMetrics.p95_latency_ms - baseMetrics.p95_latency_ms,
+          deltaUnit: " ms"
+        },
+        {
+          label: "吞吐量",
+          baseline: baseMetrics.fps,
+          candidate: candidateMetrics.fps,
+          unit: " FPS",
+          higher: true,
+          delta: candidateMetrics.fps - baseMetrics.fps,
+          deltaUnit: " FPS"
+        }
+      ];
+
+      const table = document.createElement("table");
+      table.className = "benchmark-table";
+      const head = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      ["指标", baseline.name, candidate.name, "候选差值"].forEach((text) => {
+        const cell = document.createElement("th");
+        cell.textContent = text;
+        headRow.append(cell);
+      });
+      head.append(headRow);
+      const body = document.createElement("tbody");
+      for (const row of metricRows) {
+        const tr = document.createElement("tr");
+        const label = document.createElement("td");
+        label.textContent = row.label;
+        tr.append(label);
+        for (const value of [row.baseline, row.candidate]) {
+          const cell = document.createElement("td");
+          cell.textContent = `${value.toFixed(2)}${row.unit}`;
+          tr.append(cell);
+        }
+        const delta = document.createElement("td");
+        const isImproved = row.higher ? row.delta > 0 : row.delta < 0;
+        const isNeutral = Math.abs(row.delta) < 0.005;
+        delta.className = `benchmark-delta ${isNeutral ? "neutral" : isImproved ? "good" : "bad"}`;
+        delta.textContent = `${row.delta > 0 ? "+" : ""}${row.delta.toFixed(2)}${row.deltaUnit}`;
+        tr.append(delta);
+        body.append(tr);
+      }
+      table.append(head, body);
+      const wrapper = document.createElement("div");
+      wrapper.className = "benchmark-table-wrap";
+      wrapper.append(table);
+      $("benchmarkResults").replaceChildren(wrapper);
+
+      const accuracyUp = candidateMetrics.map50 > baseMetrics.map50;
+      const faster = candidateMetrics.mean_latency_ms < baseMetrics.mean_latency_ms;
+      const verdict = document.createElement("div");
+      verdict.className = "benchmark-verdict";
+      verdict.textContent = accuracyUp && faster
+        ? "本次实测中，候选模型的 mAP@0.5 更高，单张平均延迟更低。"
+        : accuracyUp
+          ? "本次实测中，候选模型的 mAP@0.5 更高，但平均延迟没有更低。"
+          : faster
+            ? "本次实测中，候选模型速度更快，但 mAP@0.5 没有更高。"
+            : "本次实测没有同时达到 mAP@0.5 更高、平均延迟更低；请依据表格如实呈现。";
+      $("benchmarkResults").append(verdict);
+      setBenchmarkNotice("评估完成。结果来自本地标注测试集，不是预设或模拟数值。", "info");
+    }
+
+    async function refreshBenchmark() {
+      try {
+        const response = await fetch("/api/v1/benchmark");
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || "无法读取对比配置。");
+        renderBenchmarkModels(data.models || []);
+        const button = $("benchmarkButton");
+        button.disabled = !data.configured;
+        if (!data.configured) {
+          $("benchmarkMeta").textContent = `评估配置不完整：${(data.missing || []).join("、")}`;
+        } else if (data.latest) {
+          renderBenchmarkReport(data.latest);
+        } else {
+          $("benchmarkMeta").textContent =
+            `测试集配置：${data.data_file} · 输入 ${data.imgsz} · ${data.device} · 尚无评估报告`;
+        }
+      } catch (error) {
+        $("benchmarkMeta").textContent = "无法读取对比评估状态。";
+        setBenchmarkNotice(error.message || "对比评估服务不可用。", "error");
+      }
+    }
+
+    $("benchmarkButton").addEventListener("click", async () => {
+      const button = $("benchmarkButton");
+      button.disabled = true;
+      button.textContent = "正在评估测试集…";
+      $("benchmarkResults").replaceChildren();
+      setBenchmarkNotice("正在本机依次运行两个模型；测试图片不会上传。请等待评估完成。", "info");
+      try {
+        const response = await fetch("/api/v1/benchmark/run", {method:"POST"});
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || "对比评估失败。");
+        renderBenchmarkReport(data);
+      } catch (error) {
+        setBenchmarkNotice(error.message || "对比评估失败。", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "重新运行对比评估";
+      }
+    });
+
+    $("chooseButton").addEventListener("click", () => fileInput.click());
+    $("replaceButton").addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (event) => loadFile(event.target.files[0]));
+    $("confidence").addEventListener("input", (event) => {
+      $("confidenceValue").value = Number(event.target.value).toFixed(2);
+    });
+    $("clearCropButton").addEventListener("click", () => {
+      state.crop = null;
+      updateCropLabel();
+      drawOverlay();
+    });
+    $("dropzone").addEventListener("dragover", (event) => {
+      event.preventDefault();
+      $("dropzone").classList.add("drag");
+    });
+    $("dropzone").addEventListener("dragleave", () => $("dropzone").classList.remove("drag"));
+    $("dropzone").addEventListener("drop", (event) => {
+      event.preventDefault();
+      $("dropzone").classList.remove("drag");
+      loadFile(event.dataTransfer.files[0]);
+    });
+    overlay.addEventListener("pointerdown", (event) => {
+      if (!state.file) return;
+      overlay.setPointerCapture(event.pointerId);
+      state.dragging = true;
+      state.start = imagePoint(event);
+      state.current = state.start;
+      drawOverlay();
+    });
+    overlay.addEventListener("pointermove", (event) => {
+      if (!state.dragging) return;
+      state.current = imagePoint(event);
+      drawOverlay();
+    });
+    overlay.addEventListener("pointerup", (event) => {
+      if (!state.dragging) return;
+      const end = imagePoint(event);
+      const start = state.start;
+      state.dragging = false;
+      if (Math.abs(end.x - start.x) >= 8 && Math.abs(end.y - start.y) >= 8) {
+        state.crop = {
+          x1: Math.min(start.x, end.x), y1: Math.min(start.y, end.y),
+          x2: Math.max(start.x, end.x), y2: Math.max(start.y, end.y)
+        };
+      }
+      state.start = null;
+      state.current = null;
+      updateCropLabel();
+      drawOverlay();
+    });
+
+    $("detectButton").addEventListener("click", async () => {
+      if (!state.file) return;
+      const button = $("detectButton");
+      const form = new FormData();
+      form.append("image", state.file, state.file.name);
+      form.append("imgsz", $("imageSize").value);
+      form.append("conf", $("confidence").value);
+      if (state.crop) form.append("crop_region", JSON.stringify(state.crop));
+      button.disabled = true;
+      button.textContent = "检测中…";
+      setNotice("图像正在发送到本机检测服务。", "info");
+      try {
+        const response = await fetch("/api/v1/pipeline", {method:"POST",body:form});
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || "检测请求失败");
+        renderResults(data);
+      } catch (error) {
+        setNotice(error.message || "无法连接检测服务。", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "开始缺陷检测";
+      }
+    });
+
+    $("feedbackButton").addEventListener("click", async () => {
+      if (!state.file || !state.result) return;
+      const status = $("feedbackStatus");
+      const button = $("feedbackButton");
+      button.disabled = true;
+      status.textContent = "提交中…";
+      try {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("读取图片失败"));
+          reader.readAsDataURL(state.file);
+        });
+        const payload = {
+          action: "submit",
+          filename: state.file.name,
+          image_base64: dataUrl,
+          reviewer: "web-ui",
+          note: "人工确认提交",
+          model_prediction: state.result.detections || [],
+          human_correction: state.result.detections || []
+        };
+        const response = await fetch("/api/v1/feedback", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload)});
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || ("HTTP " + response.status));
+        const stats = (data.result || {}).stats || {};
+        status.textContent = "已回流：样本 " + (stats.samples ?? "?") + "，待重训 " + (stats.retrain_ready ? "是" : "否");
+        if (Array.isArray(data.agents) && data.agents.length) {
+          renderAgentTrace((state.result.agents || []).concat(data.agents));
+        }
+      } catch (error) {
+        status.textContent = "回流失败：" + (error.message || "未知错误");
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $("downloadButton").addEventListener("click", () => {
+      if (!state.result) return;
+      const payload = Object.assign({}, state.result);
+      delete payload.annotated_image_base64;
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "chip-inspection-result.json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    window.addEventListener("resize", drawOverlay);
+    window.addEventListener("resize", drawAnnotatedHighlight);
+    if ("ResizeObserver" in window) new ResizeObserver(drawOverlay).observe(preview);
+    async function loadModels() {
+      const status = $("modelStatus");
+      try {
+        const response = await fetch("/api/v1/models");
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || ("HTTP " + response.status));
+        const select = $("modelSelect");
+        select.replaceChildren();
+        (data.models || []).forEach((model) => {
+          const option = document.createElement("option");
+          option.value = model.path;
+          option.textContent = model.name + " (" + (model.size / 1048576).toFixed(1) + " MB)";
+          if (model.path === data.current) option.selected = true;
+          select.append(option);
+        });
+        if (!(data.models || []).length) {
+          const option = document.createElement("option");
+          option.textContent = "未找到可用模型";
+          option.value = "";
+          select.append(option);
+        }
+        status.textContent = "当前模型：" + (data.current || "未知");
+      } catch (error) {
+        status.textContent = "模型列表加载失败：" + (error.message || "未知错误");
+      }
+    }
+
+    async function applyModel() {
+      const path = $("modelSelect").value;
+      if (!path) return;
+      const status = $("modelStatus");
+      const button = $("applyModelButton");
+      status.textContent = "切换中…（加载模型可能需要几秒）";
+      button.disabled = true;
+      try {
+        const response = await fetch("/api/v1/model/select", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({path}),
+        });
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.detail || ("HTTP " + response.status));
+        status.textContent = "已切换：" + data.weights;
+      } catch (error) {
+        status.textContent = "切换失败：" + (error.message || "未知错误");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    $("applyModelButton").addEventListener("click", applyModel);
+    loadModels();
+
+    refreshHealth();
+    refreshBenchmark();
+  </script>
+</body>
+</html>
